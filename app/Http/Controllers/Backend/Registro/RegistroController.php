@@ -6,17 +6,54 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
-
-
+use Stevebauman\Location\Facades\Location;
 class RegistroController extends Controller
 {
 
     public function registroUsuario(Request$request){
 
+        //$ip = trim(shell_exec("dig +short myip.opendns.com @resolver1.opendns.com"));
 
-        $miip = $request->ip();
+        //$ip =  \Request::getClientIp(true);
 
-        return $miip;
+        $clientIP = \Request::ip();
+
+
+        return $clientIP;
+
+        //return $ip;
+
+        if ($position = Location::get($ip)) {
+            // Successfully retrieved position.
+            return $position->countryName;
+        } else {
+            // Failed retrieving position.
+        }
+
+
+
+
+
+
+       // $clientIP = request()->ip();
+       // dd($clientIP);
+       /* public function index(Request $request){
+            dd($request->ip());
+        }*/
+
+       // $clientIP = \Request::getClientIp(true);
+       // dd($clientIP);
+
+
+
+
+
+
+
+
+
+
+        return "fallo";
 
 
        /* $regla = array(
