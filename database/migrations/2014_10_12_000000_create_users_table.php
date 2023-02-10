@@ -15,8 +15,15 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre');
-            $table->string('password');
+            $table->dateTime('fecha_creacion');
+            $table->string('nombre', 30);
+            $table->integer('experiencia');
+            $table->boolean('nombre_cambio');
+            $table->string('token',100);
+            $table->string('id_facebook', 100)->nullable();
+            $table->string('id_android', 100)->nullable();
+            $table->string('id_apple',100)->nullable();
+            $table->string('pais', 20);
         });
     }
 
