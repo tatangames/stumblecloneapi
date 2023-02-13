@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('nombre', 30);
             $table->integer('experiencia');
             $table->boolean('nombre_cambio');
-            $table->string('token',100);
             $table->string('id_facebook', 100)->nullable();
             $table->string('id_android', 100)->nullable();
             $table->string('id_apple',100)->nullable();

@@ -3,57 +3,84 @@
 namespace App\Http\Controllers\Backend\Registro;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Models\UsuarioRecursos;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+
+use Illuminate\Support\Str;
 use Stevebauman\Location\Facades\Location;
+
 class RegistroController extends Controller
 {
 
-    public function registroUsuario(Request$request){
+    // registro de un usuario nuevo
+    public function registroUsuario(Request $request){
 
-        //$ip = trim(shell_exec("dig +short myip.opendns.com @resolver1.opendns.com"));
+        $ip = "190.86.190.54"; // sv
+        //$clientIP = request()->ip();
 
-        //$ip =  \Request::getClientIp(true);
+        // pais por DEFECTO (estados unidos)
+        $pais = "US";
 
-        $clientIP = \Request::ip();
-
-
-        return $clientIP;
-
-        //return $ip;
-
-        if ($position = Location::get($ip)) {
-            // Successfully retrieved position.
-            return $position->countryName;
-        } else {
-            // Failed retrieving position.
-        }
-
-
-
-
-
-
-       // $clientIP = request()->ip();
-       // dd($clientIP);
-       /* public function index(Request $request){
-            dd($request->ip());
+        /*if ($position = Location::get($ip)) {
+             $pais = $position->countryCode;
         }*/
 
-       // $clientIP = \Request::getClientIp(true);
-       // dd($clientIP);
+        // generar random nombre aleatorio
+        do {
+            $randomPlayer = "Player_" . Str::random(9);
+            $data = User::where('nombre', $randomPlayer)->get();
+        }
+        while ($data->count());
+
+        DB::beginTransaction();
+
+        try {
+
+            // crear usuario
+            $dataUser = new User();
+            $dataUser->fecha_creacion = Carbon::now('America/El_Salvador');
+            $dataUser->nombre = $randomPlayer;
+            $dataUser->experiencia = 0;
+            $dataUser->nombre_cambio = false;
+            $dataUser->id_facebook = null;
+            $dataUser->id_android = null;
+            $dataUser->id_apple = null;
+            $dataUser->pais = $pais;
+            $dataUser->save();
+
+            // generar recursos
+            $dataRecurso = new UsuarioRecursos();
+            $dataRecurso->id_users = $dataUser->id;
+            $dataRecurso->gemas = 5; // gemas por defecto
+            $dataRecurso->copas = 0;
+            $dataRecurso->coronas = 0;
+
+            // token de jugador
+            $token = $dataUser->createToken('auth_token')->plainTextToken;
+
+            $arrayUsuario[] = [
+                'success' => 1,
+                'idusuario' => $dataUser->id,
+                'token' => $token,
+                'gemas' => 5,
+                'copas' => 0,
+                'coronas' => 0
+            ];
+
+            return ['success' => 1, 'usuario' => $arrayUsuario];
 
 
 
+            //DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollback();
+            return ['success' => 99];
+        }
 
-
-
-
-
-
-
-        return "fallo";
 
 
        /* $regla = array(
