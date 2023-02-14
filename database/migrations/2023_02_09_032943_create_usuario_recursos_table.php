@@ -20,6 +20,8 @@ return new class extends Migration
             $table->integer('monedas');
             $table->integer('copas');
             $table->integer('coronas');
+            $table->integer('experiencia');
+            $table->boolean('nombre_cambio');
 
             $table->foreign('id_users')->references('id')->on('users');
         });
