@@ -21,6 +21,7 @@ return new class extends Migration
             $table->text('descripcion')->nullable();
             $table->boolean('redireccionar');
             $table->string('link_url', 100)->nullable();
+            $table->integer('posicion');
         });
     }
 

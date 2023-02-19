@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('imagen', 100);
             $table->text('descripcion')->nullable();
             $table->string('link_url');
+            $table->integer('posicion');
         });
     }
 

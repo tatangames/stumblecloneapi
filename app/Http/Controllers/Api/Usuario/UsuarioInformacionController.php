@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Api\Usuario;
 
 use App\Http\Controllers\Controller;
 use App\Models\NivelExperiencia;
+use App\Models\PanelNovedades;
+use App\Models\PanelVideos;
+use App\Models\User;
 use App\Models\UsuarioRecursos;
 use Illuminate\Http\Request;
 
@@ -18,22 +21,22 @@ class UsuarioInformacionController extends Controller
     // se verifica que haya gemas suficientes.
     public function informacionGlobalUsuario(Request $request){
 
-        // La informacion por seguridad se obtendra con el Token
-        $user = $request->user();
+        $infoUsuario = User::where('id', $request->idusuario)->first();
 
-        if($user != null){
+        // informacion de recursos del usuario
+        $recursos = UsuarioRecursos::where('id_users', $request->idusuario)->first();
 
-            // informacion de recursos del usuario
-            $recursos = UsuarioRecursos::where('id_users', $user->id)->first();
+        // obtener nivel de experiencia de usuario
+        $nivelXP = $this->miNivelExperiencia($recursos);
 
-            // obtener nivel de experiencia de usuario
-            $nivelXP = $this->miNivelExperiencia($recursos);
+        // obtener noticias como novedades
+        $novedades = $this->getNoticiasNovedades();
 
-            return ['nivelxp' => $nivelXP,'usuario' => $user, 'recursos' => $recursos];
+        // obtener noticias como videos
+        $videos = $this->getNoticiasVideos();
 
-        }else{
-            return ['success' => 99];
-        }
+        return ['success' => 1, 'nivelxp' => [$nivelXP], 'usuario' => [$infoUsuario], 'recursos' => [$recursos],
+                'novedades' => $novedades, 'videos' => $videos];
     }
 
 
@@ -56,35 +59,37 @@ class UsuarioInformacionController extends Controller
 
             if(($dataUser->experiencia < $info->experiencia) &&
                 ($dataUser->experiencia <= $siguienteXP)){
-                return ['minivelxp' => $info->nivel, 'nextxp' => $info->experiencia, 'ultimonivel' => 0];
+
+                if($info->nivel == 1){
+                    $minimocurrent = 0;
+                }else{
+                    $minimocurrent = ($siguienteXP - $info->experiencia);
+                }
+
+                // retorna nivel en el que se encuentra el usuario
+                return ['minivelxp' => $info->nivel, 'nextxp' => $info->experiencia, 'minimocurrent' => $minimocurrent, 'ultimonivel' => false];
             }
         }
 
-        return ['minivelxp' => $ultimoNivel, 'nextxp' => $ultimaExperiencia, 'ultimonivel' => 1];
-
-
-
-        /*if(($dataUser->experiencia < 200) &&
-            ($dataUser->experiencia <= 500)){
-            return ['miXP' => 1, 'nextxp' => 200];
-        }
-
-        else if(($dataUser->experiencia < 300) &&
-            ($dataUser->experiencia <= 800)){
-            return ['miXP' => 2, 'nextxp' => 300];
-        }
-
-        else if(($dataUser->experiencia < 500) &&
-            ($dataUser->experiencia <= 800)){
-            return ['miXP' => 3, 'nextxp' => 500];
-        }
-
-        else{
-            // he llegado al ultimo nivel
-            return ['miXP' => 3, 'nextxp' => 500];
-        }*/
+        // retorno significa: que estamos en el ultimo nivel
+        // el minimo current quedaria en 0, asi se llena la barra completa
+        return ['minivelxp' => $ultimoNivel, 'nextxp' => $ultimaExperiencia, 'minimocurrent' => 0, 'ultimonivel' => true];
     }
 
+
+    // informacion de las noticias como novedades
+    private function getNoticiasNovedades(){
+
+        $lista = PanelNovedades::orderBy('posicion', 'ASC')->get();
+        return $lista;
+    }
+
+    // informacion de las noticias como videos
+    private function getNoticiasVideos(){
+
+        $lista = PanelVideos::orderBy('posicion', 'ASC')->get();
+        return $lista;
+    }
 
 
 }

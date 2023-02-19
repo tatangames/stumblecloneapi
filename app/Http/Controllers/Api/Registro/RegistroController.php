@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Registro;
 
 use App\Http\Controllers\Controller;
+use App\Models\NivelExperiencia;
 use App\Models\User;
 use App\Models\UsuarioRecursos;
 use Carbon\Carbon;
@@ -50,7 +51,6 @@ class RegistroController extends Controller
             $dataUser->pais = $pais;
             $dataUser->save();
 
-
             // generar recursos
             $dataRecurso = new UsuarioRecursos();
             $dataRecurso->id_users = $dataUser->id;
@@ -65,23 +65,50 @@ class RegistroController extends Controller
             // token de jugador
             $token = $dataUser->createToken('auth_token')->plainTextToken;
 
-            $arrayUsuario[] = [
-                'success' => 1,
-                'idusuario' => $dataUser->id,
-                'token' => $token,
-                'gemas' => 5,
-                'copas' => 0,
-                'coronas' => 0
-            ];
+            // informacion de recursos del usuario
+            $recursos = UsuarioRecursos::where('id_users', $dataUser->id)->first();
+
+            // obtener nivel de experiencia de usuario
+            $nivelXP = $this->miNivelExperiencia($recursos);
 
             DB::commit();
-            return ['success' => 1, 'usuario' => $arrayUsuario];
+            // el idusaurio retornado sera para datos locales
+            return ['success' => 1, 'idusuario' => $dataUser->id, 'token' => $token, 'nivelxp' => [$nivelXP], 'usuario' => [$dataRecurso], 'recursos' => [$recursos]];
+
         } catch (\Throwable $e) {
             DB::rollback();
             return ['success' => 99];
         }
     }
 
+
+    private function miNivelExperiencia($dataUser){
+
+        $infoNivelExp = NivelExperiencia::orderBy('id', 'ASC')->get();
+
+        $ultimoNivel = 0;
+        $ultimaExperiencia = 0;
+
+        foreach ($infoNivelExp as $info){
+
+            $ultimoNivel = $info->nivel;
+            $ultimaExperiencia = $info->experiencia;
+
+            $siguienteXP = $info->experiencia;
+            if($data = NivelExperiencia::where('id', $info->id + 1)->first()){
+                $siguienteXP = $data->experiencia;
+            }
+
+            if(($dataUser->experiencia < $info->experiencia) &&
+                ($dataUser->experiencia <= $siguienteXP)){
+                // retorna nivel en el que se encuentra el usuario
+                return ['minivelxp' => $info->nivel, 'nextxp' => $info->experiencia, 'ultimonivel' => false];
+            }
+        }
+
+        // retorno significa: que estamos en el ultimo nivel
+        return ['minivelxp' => $ultimoNivel, 'nextxp' => $ultimaExperiencia, 'ultimonivel' => true];
+    }
 
 
 
