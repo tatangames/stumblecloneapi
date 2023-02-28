@@ -26,7 +26,7 @@
         }
         body {
             font-family: 'Roboto', sans-serif;
-            background-image: url({{ asset('images/fondocielo.png') }});
+            background-image: url({{ asset('images/fondo3.jpg') }});
         }
 
         .demo-container {
@@ -74,7 +74,7 @@
                 <div class="row">
                     <div class="col-lg-6 col-12 mx-auto">
                         <div class="text-center image-size-small position-relative">
-                            <img src="{{ asset('images/logocompany.png') }}" class="rounded-circle p-2 bg-white">
+                            <img src="{{ asset('images/foto-default.png') }}" class="rounded-circle p-2 bg-white">
                         </div>
                         <div class="p-5 bg-white rounded shadow-lg">
                             <h3 class="mb-2 text-center pt-5"><strong>Battle Game Unity</strong></h3>

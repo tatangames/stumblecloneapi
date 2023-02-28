@@ -3,12 +3,18 @@
 namespace App\Http\Controllers\Api\Usuario;
 
 use App\Http\Controllers\Controller;
+use App\Models\Configuraciones;
 use App\Models\NivelExperiencia;
-use App\Models\PanelNovedades;
-use App\Models\PanelVideos;
+use App\Models\NoticiaImagen;
+use App\Models\NoticiaNovedades;
+use App\Models\NoticiaVideos;
+use App\Models\RegionesApp;
 use App\Models\User;
 use App\Models\UsuarioRecursos;
+use App\Models\UsuarioRedSocial;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class UsuarioInformacionController extends Controller
 {
@@ -17,9 +23,8 @@ class UsuarioInformacionController extends Controller
         $this->middleware('auth:sanctum');
     }
 
-    // cambio de nombre de usuario
-    // se verifica que haya gemas suficientes.
-    public function informacionGlobalUsuario(Request $request){
+
+    public function informacionUsuarioLocal(Request $request){
 
         $infoUsuario = User::where('id', $request->idusuario)->first();
 
@@ -29,14 +34,22 @@ class UsuarioInformacionController extends Controller
         // obtener nivel de experiencia de usuario
         $nivelXP = $this->miNivelExperiencia($recursos);
 
-        // obtener noticias como novedades
+        // obtener noticias como novedades por region
         $novedades = $this->getNoticiasNovedades();
 
-        // obtener noticias como videos
+        // obtener noticias como videos por region
         $videos = $this->getNoticiasVideos();
 
+        // obtener imagenes de las noticias
+        $imagenes = $this->getNoticiasImagenes();
+
+
+        // codigo bundle para saver si debe actualizar el usuario
+        $infoConfig = Configuraciones::where('id', 1)->first();
+
         return ['success' => 1, 'nivelxp' => [$nivelXP], 'usuario' => [$infoUsuario], 'recursos' => [$recursos],
-                'novedades' => $novedades, 'videos' => $videos];
+                'novedades' => $novedades, 'videos' => $videos, 'notiimagen' => $imagenes, 'codeandroid' => $infoConfig->version_android,
+                'codeapple' => $infoConfig->version_apple];
     }
 
 
@@ -80,16 +93,65 @@ class UsuarioInformacionController extends Controller
     // informacion de las noticias como novedades
     private function getNoticiasNovedades(){
 
-        $lista = PanelNovedades::orderBy('posicion', 'ASC')->get();
+        $lista = NoticiaNovedades::orderBy('posicion', 'ASC')->get();
+
+        // darle formato de fecha segun idioma actual del juego
+        foreach ($lista as $dd){
+
+            $infoRegiones = RegionesApp::where('id', $dd->id_regionesapp)->first();
+            $dd->fecha = date($infoRegiones->fecha, strtotime($dd->fecha));
+            $dd->region = $infoRegiones->nombre;
+        }
+
         return $lista;
     }
 
     // informacion de las noticias como videos
     private function getNoticiasVideos(){
 
-        $lista = PanelVideos::orderBy('posicion', 'ASC')->get();
+        $lista = NoticiaVideos::orderBy('posicion', 'ASC')->get();
+
+        // darle formato de fecha segun idioma actual del juego
+        foreach ($lista as $dd){
+
+            $infoRegiones = RegionesApp::where('id', $dd->id_regionesapp)->first();
+            $dd->fecha = date($infoRegiones->fecha, strtotime($dd->fecha));
+            $dd->region = $infoRegiones->nombre;
+        }
+
         return $lista;
     }
+
+    // informacion de array de imagenes para noticias
+    private function getNoticiasImagenes(){
+
+        $lista = NoticiaImagen::orderBy('id', 'ASC')->get();
+
+        return $lista;
+    }
+
+
+    public function informacionUsuarioRedSocial(Request $request){
+
+        // request: idredsocial, tiporedsocial
+
+        $infoRedSocial = UsuarioRedSocial::where('id_tiporedsocial', $request->tiporedsocial)
+            ->where('id_redsocial', $request->idredsocial)
+            ->first();
+
+        $infoUsuario = User::where('id', $infoRedSocial->id_users)->first();
+
+        // informacion de recursos del usuario
+        $recursos = UsuarioRecursos::where('id_users', $infoRedSocial->id_users)->first();
+
+        // obtener nivel de experiencia de usuario
+        $nivelXP = $this->miNivelExperiencia($recursos);
+
+        return ['success' => 1, 'idusuario' => $infoUsuario->id, 'token' => $infoRedSocial->token_redsocial,
+            'nivelxp' => [$nivelXP], 'usuario' => [$infoUsuario], 'recursos' => [$recursos] ];
+    }
+
+
 
 
 }

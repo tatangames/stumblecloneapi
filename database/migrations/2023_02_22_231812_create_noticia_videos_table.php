@@ -13,15 +13,18 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('panel_novedades', function (Blueprint $table) {
+        Schema::create('noticia_videos', function (Blueprint $table) {
             $table->id();
+            $table->bigInteger('id_regionesapp')->unsigned();
+            $table->bigInteger('id_imagen')->unsigned();
+
             $table->string('titulo', 100);
             $table->date('fecha');
-            $table->string('imagen', 100);
-            $table->text('descripcion')->nullable();
-            $table->boolean('redireccionar');
-            $table->string('link_url', 100)->nullable();
+            $table->string('link_url',500);
             $table->integer('posicion');
+
+            $table->foreign('id_regionesapp')->references('id')->on('regiones_app');
+            $table->foreign('id_imagen')->references('id')->on('noticia_imagen');
         });
     }
 
@@ -32,6 +35,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('panel_novedades');
+        Schema::dropIfExists('noticia_videos');
     }
 };

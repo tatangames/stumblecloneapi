@@ -7,17 +7,17 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Las regiones de idioma que se da soporte a la aplicacion
      *
      * @return void
      */
     public function up()
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('regiones_app', function (Blueprint $table) {
             $table->id();
-            $table->dateTime('fecha_creacion');
-            $table->string('nombre', 30);
-            $table->string('pais', 20);
+            $table->string('nombre', 10);
+            $table->string('fecha', 20);
+            $table->string('descripcion', 25);
         });
     }
 
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('regiones_app');
     }
 };

@@ -5,9 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PanelNovedades extends Model
+class NoticiaNovedades extends Model
 {
     use HasFactory;
-    protected $table = 'panel_novedades';
+    protected $table = 'noticia_novedades';
     public $timestamps = false;
 }

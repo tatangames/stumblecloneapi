@@ -7,20 +7,19 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * LOS TIPOS DE REDES SOCIALES CON CUAL PUEDE INICIAR SESION EL USUARIO
+     *
+     * 1- Facebook
+     * 2- Android
+     * 3- Apple
      *
      * @return void
      */
     public function up()
     {
-        Schema::create('panel_videos', function (Blueprint $table) {
+        Schema::create('tipo_redsocial', function (Blueprint $table) {
             $table->id();
-            $table->string('titulo', 100);
-            $table->date('fecha');
-            $table->string('imagen', 100);
-            $table->text('descripcion')->nullable();
-            $table->string('link_url');
-            $table->integer('posicion');
+            $table->string('nombre', 25);
         });
     }
 
@@ -31,6 +30,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('panel_videos');
+        Schema::dropIfExists('tipo_redsocial');
     }
 };

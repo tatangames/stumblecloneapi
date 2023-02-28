@@ -4,13 +4,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Registro\RegistroController;
 use App\Http\Controllers\Api\Usuario\UsuarioInformacionController;
-
+use App\Http\Controllers\Api\Login\LoginRedSocialController;
 
 // registro de un nuevo usuario
 Route::post('/usuario/registro', [RegistroController::class, 'registroUsuario']);
 
-// retorno de informacion de usuario, cuando inicia el juego
-Route::post('/usuario/informacion', [UsuarioInformacionController::class, 'informacionGlobalUsuario']);
+// login con redes sociales
+Route::post('/usuario/registro/redsocial', [LoginRedSocialController::class, 'crearUsuarioRedSocial']);
+
+// retorno de informacion de usuario local
+Route::post('/usuario/informacion', [UsuarioInformacionController::class, 'informacionUsuarioLocal']);
+
+// retorno de informacion de usuario con redes sociales
+Route::post('/usuario/redsocial/informacion', [UsuarioInformacionController::class, 'informacionUsuarioRedSocial']);
+
 
 
 

@@ -1,27 +1,41 @@
 <?php
 
-namespace App\Http\Controllers\Api\Registro;
+namespace App\Http\Controllers\Api\Login;
 
 use App\Http\Controllers\Controller;
-use App\Models\Configuraciones;
 use App\Models\NivelExperiencia;
-use App\Models\NoticiaImagen;
-use App\Models\NoticiaNovedades;
-use App\Models\NoticiaVideos;
-use App\Models\RegionesApp;
 use App\Models\User;
 use App\Models\UsuarioRecursos;
+use App\Models\UsuarioRedSocial;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-class RegistroController extends Controller
+class LoginRedSocialController extends Controller
 {
 
-    // registro de un usuario nuevo
-    public function registroUsuario(Request $request){
+    // login con redes sociales
+    public function crearUsuarioRedSocial(Request $request){
+
+        // reuqest: tiporedsocial, idredsocial
+
+        // se buscar al usuario, si existe se retona preguntandole al usuario si quiere cargar
+        // los datos de esta cuenta encontrada
+        // 1- facebook, 2- android, 3-apple
+
+        if($infoRed = UsuarioRedSocial::where('id_tiporedsocial', $request->tiporedsocial)
+            ->where('id_redsocial', $request->idredsocial)
+            ->first()){
+                // usuario encontrado, retornar para preguntar a usuario si quiere recuperar datos
+
+            $infoUsuario = User::where('id', $infoRed->id_users)->first();
+
+            return ['success' => 1, 'usuario' => [$infoUsuario]];
+        }
+
+        // CREAR USUARIO NUEVO CON LA RED SOCIAL
 
         $clientIP = "190.86.190.54"; // sv
         //$clientIP = request()->ip();
@@ -66,30 +80,24 @@ class RegistroController extends Controller
             // token de jugador
             $token = $dataUser->createToken('auth_token')->plainTextToken;
 
+            // guardar registro de red social
+            $dataRed = new UsuarioRedSocial();
+            $dataRed->id_users = $dataUser->id;
+            $dataRed->id_tiporedsocial = $request->tiporedsocial;
+            $dataRed->id_redsocial = $request->idredsocial;
+            $dataRed->token_redsocial = $token;
+            $dataRed->save();
+
             // informacion de recursos del usuario
             $recursos = UsuarioRecursos::where('id_users', $dataUser->id)->first();
 
             // obtener nivel de experiencia de usuario
-            $nivelXP = $this->miNivelExperiencia();
+            $nivelXP = $this->miNivelExperiencia($dataRecurso);
 
-            // obtener noticias como novedades por region
-            $novedades = $this->getNoticiasNovedades();
-
-            // obtener noticias como videos por region
-            $videos = $this->getNoticiasVideos();
-
-            // obtener imagenes de las noticias
-            $imagenes = $this->getNoticiasImagenes();
-
-
-            // codigo bundle para saver si debe actualizar el usuario
-            $infoConfig = Configuraciones::where('id', 1)->first();
 
             DB::commit();
             // el idusaurio retornado sera para datos locales
-            return ['success' => 1, 'token' => $token, 'usuario' => [$dataUser], 'nivelxp' => [$nivelXP], 'recursos' => [$recursos],
-                'novedades' => $novedades, 'videos' => $videos, 'notiimagen' => $imagenes, 'codeandroid' => $infoConfig->version_android,
-                'codeapple' => $infoConfig->version_apple];
+            return ['success' => 2, 'idusuario' =>$dataUser->id, 'token' => $token, 'usuario' => [$dataUser], 'nivelxp' => [$nivelXP], 'recursos' => [$recursos] ];
 
         } catch (\Throwable $e) {
             DB::rollback();
@@ -97,8 +105,7 @@ class RegistroController extends Controller
         }
     }
 
-
-    private function miNivelExperiencia(){
+    private function miNivelExperiencia($dataUser){
 
         $infoNivelExp = NivelExperiencia::orderBy('id', 'ASC')->get();
 
@@ -115,9 +122,8 @@ class RegistroController extends Controller
                 $siguienteXP = $data->experiencia;
             }
 
-            // es 0: porque el usuario no tiene experiencia aun
-            if((0 < $info->experiencia) &&
-                (0 <= $siguienteXP)){
+            if(($dataUser->experiencia < $info->experiencia) &&
+                ($dataUser->experiencia <= $siguienteXP)){
 
                 if($info->nivel == 1){
                     $minimocurrent = 0;
@@ -134,48 +140,6 @@ class RegistroController extends Controller
         // el minimo current quedaria en 0, asi se llena la barra completa
         return ['minivelxp' => $ultimoNivel, 'nextxp' => $ultimaExperiencia, 'minimocurrent' => 0, 'ultimonivel' => true];
     }
-
-
-    // informacion de las noticias como novedades
-    private function getNoticiasNovedades(){
-
-        $lista = NoticiaNovedades::orderBy('posicion', 'ASC')->get();
-
-        // darle formato de fecha segun idioma actual del juego
-        foreach ($lista as $dd){
-
-            $infoRegiones = RegionesApp::where('id', $dd->id_regionesapp)->first();
-            $dd->fecha = date($infoRegiones->fecha, strtotime($dd->fecha));
-            $dd->region = $infoRegiones->nombre;
-        }
-
-        return $lista;
-    }
-
-    // informacion de las noticias como videos
-    private function getNoticiasVideos(){
-
-        $lista = NoticiaVideos::orderBy('posicion', 'ASC')->get();
-
-        // darle formato de fecha segun idioma actual del juego
-        foreach ($lista as $dd){
-
-            $infoRegiones = RegionesApp::where('id', $dd->id_regionesapp)->first();
-            $dd->fecha = date($infoRegiones->fecha, strtotime($dd->fecha));
-            $dd->region = $infoRegiones->nombre;
-        }
-
-        return $lista;
-    }
-
-    // informacion de array de imagenes para noticias
-    private function getNoticiasImagenes(){
-
-        $lista = NoticiaImagen::orderBy('id', 'ASC')->get();
-
-        return $lista;
-    }
-
 
 
 }

@@ -7,17 +7,15 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Se registran las imagenes para cada noticia
      *
      * @return void
      */
     public function up()
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('noticia_imagen', function (Blueprint $table) {
             $table->id();
-            $table->dateTime('fecha_creacion');
-            $table->string('nombre', 30);
-            $table->string('pais', 20);
+            $table->string('imagen', 100);
         });
     }
 
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('noticia_imagen');
     }
 };

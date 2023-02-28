@@ -17,6 +17,8 @@ return new class extends Migration
             $table->id();
             // cuando usuario cambia nombre por segunda vez, se cobran usando gemas
             $table->integer('precio_nombre');
+            $table->integer('version_android');
+            $table->integer('version_apple');
         });
     }
 
