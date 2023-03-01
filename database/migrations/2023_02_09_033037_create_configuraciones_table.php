@@ -19,6 +19,10 @@ return new class extends Migration
             $table->integer('precio_nombre');
             $table->integer('version_android');
             $table->integer('version_apple');
+
+            // nuevas noticias se debera aumentar el contador para que usuario al cargar el juego
+            // aparesca icono que hay una nueva noticia
+            $table->integer('nueva_noticia');
         });
     }
 

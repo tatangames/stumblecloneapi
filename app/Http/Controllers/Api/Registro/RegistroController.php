@@ -89,7 +89,7 @@ class RegistroController extends Controller
             // el idusaurio retornado sera para datos locales
             return ['success' => 1, 'token' => $token, 'usuario' => [$dataUser], 'nivelxp' => [$nivelXP], 'recursos' => [$recursos],
                 'novedades' => $novedades, 'videos' => $videos, 'notiimagen' => $imagenes, 'codeandroid' => $infoConfig->version_android,
-                'codeapple' => $infoConfig->version_apple];
+                'codeapple' => $infoConfig->version_apple, 'nuevanoticia' => $infoConfig->nueva_noticia];
 
         } catch (\Throwable $e) {
             DB::rollback();

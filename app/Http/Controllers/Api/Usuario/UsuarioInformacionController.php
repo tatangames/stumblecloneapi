@@ -43,13 +43,12 @@ class UsuarioInformacionController extends Controller
         // obtener imagenes de las noticias
         $imagenes = $this->getNoticiasImagenes();
 
-
         // codigo bundle para saver si debe actualizar el usuario
         $infoConfig = Configuraciones::where('id', 1)->first();
 
         return ['success' => 1, 'nivelxp' => [$nivelXP], 'usuario' => [$infoUsuario], 'recursos' => [$recursos],
                 'novedades' => $novedades, 'videos' => $videos, 'notiimagen' => $imagenes, 'codeandroid' => $infoConfig->version_android,
-                'codeapple' => $infoConfig->version_apple];
+                'codeapple' => $infoConfig->version_apple, 'nuevanoticia' => $infoConfig->nueva_noticia];
     }
 
 
@@ -151,7 +150,20 @@ class UsuarioInformacionController extends Controller
             'nivelxp' => [$nivelXP], 'usuario' => [$infoUsuario], 'recursos' => [$recursos] ];
     }
 
+    // retorno de trofeos y cornoas LOCAL
+    private function getTrofeoCoronaLocal($region){
 
+        /*$listado = DB::table('p_presup_unidad_detalle AS pre')
+            ->join('p_materiales AS pm', 'pre.id_material', '=', 'pm.id')
+            ->select('pm.id_objespecifico', 'pre.cantidad', 'pre.precio', 'pre.periodo')
+            ->whereIn('pre.id_presup_unidad', $pilaArrayPresuUnidad)
+            ->where('pm.id_objespecifico', $dd->id) // todos los materiales con este id obj específico
+            ->get();*/
+
+        $listado = User::where('pais', $region)->take(100)->get();
+
+
+    }
 
 
 }
