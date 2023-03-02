@@ -26,13 +26,16 @@ class RegistroController extends Controller
         $clientIP = "190.86.190.54"; // sv
         //$clientIP = request()->ip();
 
-        // pais por DEFECTO (estados unidos)
-        $pais = "US";
+        // el pais puede ser null
+        $pais = "us";
 
         // obtiene el pais de donde se hace la consulta http
         /*if ($position = Location::get($clientIP)) {
              $pais = $position->countryCode;
         }*/
+
+        // pasar a minuscula
+        $pais = strtolower($pais);
 
         // generar random nombre aleatorio
         do {
@@ -81,15 +84,39 @@ class RegistroController extends Controller
             // obtener imagenes de las noticias
             $imagenes = $this->getNoticiasImagenes();
 
+            // obtener posicion de coronas Local
+            $coronasLocal = $this->getPosicionCoronasLocal($pais);
+
+            // obtener posicion de copas Local
+            $copasLocal = $this->getPosicionCopasLocal($pais);
+
+            // obtener posicion de coronas global
+            $coronasGlobal = $this->getPosicionCoronasGlobal();
+
+            // obtener posicion de coronas global
+            $copasGlobal = $this->getPosicionCopasGlobal();
 
             // codigo bundle para saver si debe actualizar el usuario
             $infoConfig = Configuraciones::where('id', 1)->first();
 
             DB::commit();
             // el idusaurio retornado sera para datos locales
-            return ['success' => 1, 'token' => $token, 'usuario' => [$dataUser], 'nivelxp' => [$nivelXP], 'recursos' => [$recursos],
-                'novedades' => $novedades, 'videos' => $videos, 'notiimagen' => $imagenes, 'codeandroid' => $infoConfig->version_android,
-                'codeapple' => $infoConfig->version_apple, 'nuevanoticia' => $infoConfig->nueva_noticia];
+            return ['success' => 1,
+                    'token' => $token,
+                    'usuario' => [$dataUser],
+                    'nivelxp' => [$nivelXP],
+                    'recursos' => [$recursos],
+                    'novedades' => $novedades,
+                    'videos' => $videos,
+                    'notiimagen' => $imagenes,
+                    'codeandroid' => $infoConfig->version_android,
+                    'codeapple' => $infoConfig->version_apple,
+                    'nuevanoticia' => $infoConfig->nueva_noticia,
+                    'coronaslocal' => $coronasLocal,
+                    'copaslocal' => $copasLocal,
+                    'coronasglobal' => $coronasGlobal,
+                    'copasglobal' => $copasGlobal
+                ];
 
         } catch (\Throwable $e) {
             DB::rollback();
@@ -176,6 +203,86 @@ class RegistroController extends Controller
         return $lista;
     }
 
+
+    // retorno de coronas Local
+    private function getPosicionCoronasLocal($region){
+
+        $listado = DB::table('users AS uu')
+            ->join('usuario_recursos AS re', 're.id_users', '=', 'uu.id')
+            ->select('uu.nombre', 'uu.pais', 're.coronas', 'uu.id')
+            ->where('uu.pais', $region) // si region es null, pues lista estara vacia
+            ->orderBy('re.coronas', 'DESC')
+            ->take(100)
+            ->get();
+
+        $conteo = 0;
+        foreach ($listado as $dd){
+            $conteo++;
+            $dd->conteo = $conteo;
+        }
+
+        return $listado;
+    }
+
+    // retorno de copas Local
+    private function getPosicionCopasLocal($region){
+
+        $listado = DB::table('users AS uu')
+            ->join('usuario_recursos AS re', 're.id_users', '=', 'uu.id')
+            ->select('uu.nombre', 'uu.pais', 're.copas', 'uu.id')
+            ->where('uu.pais', $region) // si region es null, pues lista estara vacia
+            ->orderBy('re.copas', 'DESC')
+            ->take(100)
+            ->get();
+
+        $conteo = 0;
+        foreach ($listado as $dd){
+            $conteo++;
+            $dd->conteo = $conteo;
+        }
+
+        return $listado;
+    }
+
+
+    // retorno de coronas Global
+    private function getPosicionCoronasGlobal(){
+
+        $listado = DB::table('users AS uu')
+            ->join('usuario_recursos AS re', 're.id_users', '=', 'uu.id')
+            ->select('uu.nombre', 'uu.pais', 're.coronas', 'uu.id')
+            ->orderBy('re.coronas', 'DESC')
+            ->take(100)
+            ->get();
+
+        $conteo = 0;
+        foreach ($listado as $dd){
+            $conteo++;
+            $dd->conteo = $conteo;
+        }
+
+        return $listado;
+    }
+
+
+    // retorno de copas Global
+    private function getPosicionCopasGlobal(){
+
+        $listado = DB::table('users AS uu')
+            ->join('usuario_recursos AS re', 're.id_users', '=', 'uu.id')
+            ->select('uu.nombre', 'uu.pais', 're.copas', 'uu.id')
+            ->orderBy('re.copas', 'DESC')
+            ->take(100)
+            ->get();
+
+        $conteo = 0;
+        foreach ($listado as $dd){
+            $conteo++;
+            $dd->conteo = $conteo;
+        }
+
+        return $listado;
+    }
 
 
 }

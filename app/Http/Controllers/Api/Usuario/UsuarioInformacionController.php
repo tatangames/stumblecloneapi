@@ -15,6 +15,8 @@ use App\Models\UsuarioRedSocial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class UsuarioInformacionController extends Controller
 {
@@ -43,12 +45,37 @@ class UsuarioInformacionController extends Controller
         // obtener imagenes de las noticias
         $imagenes = $this->getNoticiasImagenes();
 
+        // obtener posicion de coronas Local
+        $coronasLocal = $this->getPosicionCoronasLocal($infoUsuario->pais);
+
+        // obtener posicion de copas Local
+        $copasLocal = $this->getPosicionCopasLocal($infoUsuario->pais);
+
+        // obtener posicion de coronas global
+        $coronasGlobal = $this->getPosicionCoronasGlobal();
+
+        // obtener posicion de coronas global
+        $copasGlobal = $this->getPosicionCopasGlobal();
+
+
         // codigo bundle para saver si debe actualizar el usuario
         $infoConfig = Configuraciones::where('id', 1)->first();
 
-        return ['success' => 1, 'nivelxp' => [$nivelXP], 'usuario' => [$infoUsuario], 'recursos' => [$recursos],
-                'novedades' => $novedades, 'videos' => $videos, 'notiimagen' => $imagenes, 'codeandroid' => $infoConfig->version_android,
-                'codeapple' => $infoConfig->version_apple, 'nuevanoticia' => $infoConfig->nueva_noticia];
+        return ['success' => 1,
+                'nivelxp' => [$nivelXP],
+                'usuario' => [$infoUsuario],
+                'recursos' => [$recursos],
+                'novedades' => $novedades,
+                'videos' => $videos,
+                'notiimagen' => $imagenes,
+                'codeandroid' => $infoConfig->version_android,
+                'codeapple' => $infoConfig->version_apple,
+                'nuevanoticia' => $infoConfig->nueva_noticia,
+                'coronaslocal' => $coronasLocal,
+                'copaslocal' => $copasLocal,
+                'coronasglobal' => $coronasGlobal,
+                'copasglobal' => $copasGlobal,
+        ];
     }
 
 
@@ -129,7 +156,6 @@ class UsuarioInformacionController extends Controller
         return $lista;
     }
 
-
     public function informacionUsuarioRedSocial(Request $request){
 
         // request: idredsocial, tiporedsocial
@@ -146,24 +172,182 @@ class UsuarioInformacionController extends Controller
         // obtener nivel de experiencia de usuario
         $nivelXP = $this->miNivelExperiencia($recursos);
 
-        return ['success' => 1, 'idusuario' => $infoUsuario->id, 'token' => $infoRedSocial->token_redsocial,
-            'nivelxp' => [$nivelXP], 'usuario' => [$infoUsuario], 'recursos' => [$recursos] ];
+        return ['success' => 1,
+                'idusuario' => $infoUsuario->id,
+                'token' => $infoRedSocial->token_redsocial,
+                'nivelxp' => [$nivelXP],
+                'usuario' => [$infoUsuario],
+                'recursos' => [$recursos] ];
     }
 
-    // retorno de trofeos y cornoas LOCAL
-    private function getTrofeoCoronaLocal($region){
+    // retorno de coronas Local
+    private function getPosicionCoronasLocal($region){
 
-        /*$listado = DB::table('p_presup_unidad_detalle AS pre')
-            ->join('p_materiales AS pm', 'pre.id_material', '=', 'pm.id')
-            ->select('pm.id_objespecifico', 'pre.cantidad', 'pre.precio', 'pre.periodo')
-            ->whereIn('pre.id_presup_unidad', $pilaArrayPresuUnidad)
-            ->where('pm.id_objespecifico', $dd->id) // todos los materiales con este id obj específico
-            ->get();*/
+        $listado = DB::table('users AS uu')
+            ->join('usuario_recursos AS re', 're.id_users', '=', 'uu.id')
+            ->select('uu.nombre', 'uu.pais', 're.coronas', 'uu.id')
+            ->where('uu.pais', $region) // si region es null, pues lista estara vacia
+            ->orderBy('re.coronas', 'DESC')
+            ->take(100)
+            ->get();
 
-        $listado = User::where('pais', $region)->take(100)->get();
+        $conteo = 0;
+        foreach ($listado as $dd){
+            $conteo++;
+            $dd->conteo = $conteo;
+        }
 
-
+        return $listado;
     }
+
+    // retorno de copas Local
+    private function getPosicionCopasLocal($region){
+
+        $listado = DB::table('users AS uu')
+            ->join('usuario_recursos AS re', 're.id_users', '=', 'uu.id')
+            ->select('uu.nombre', 'uu.pais', 're.copas', 'uu.id')
+            ->where('uu.pais', $region) // si region es null, pues lista estara vacia
+            ->orderBy('re.copas', 'DESC')
+            ->take(100)
+            ->get();
+
+        $conteo = 0;
+        foreach ($listado as $dd){
+            $conteo++;
+            $dd->conteo = $conteo;
+        }
+
+        return $listado;
+    }
+
+
+    // retorno de coronas Global
+    private function getPosicionCoronasGlobal(){
+
+        $listado = DB::table('users AS uu')
+            ->join('usuario_recursos AS re', 're.id_users', '=', 'uu.id')
+            ->select('uu.nombre', 'uu.pais', 're.coronas', 'uu.id')
+            ->orderBy('re.coronas', 'DESC')
+            ->take(100)
+            ->get();
+
+        $conteo = 0;
+        foreach ($listado as $dd){
+            $conteo++;
+            $dd->conteo = $conteo;
+        }
+
+        return $listado;
+    }
+
+
+    // retorno de copas Global
+    private function getPosicionCopasGlobal(){
+
+        $listado = DB::table('users AS uu')
+            ->join('usuario_recursos AS re', 're.id_users', '=', 'uu.id')
+            ->select('uu.nombre', 'uu.pais', 're.copas', 'uu.id')
+            ->orderBy('re.copas', 'DESC')
+            ->take(100)
+            ->get();
+
+        $conteo = 0;
+        foreach ($listado as $dd){
+            $conteo++;
+            $dd->conteo = $conteo;
+        }
+
+        return $listado;
+    }
+
+    public function cambiarNombrePlayer(Request $request){
+
+        $rules = array(
+            'id' => 'required',
+            'nombre' => 'required',
+        );
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ( $validator->fails()){
+            return ['success' => 0];
+        }
+
+        DB::beginTransaction();
+
+        try {
+            if(User::where('id', $request->id)->first()){
+
+                $infoRecursos = UsuarioRecursos::where('id_users', $request->id)->first();
+
+                $conteo = Str::length($request->nombre);
+
+                if($infoRecursos->nombre_cambio == 1){
+                    // ya cambio nombre, verificar que haya gemas
+                    $infoConfig = Configuraciones::where('id', 1)->first();
+
+                    if($infoRecursos->recursos < $infoConfig->precio_nombre){
+                        // no alcanzan las gemas
+                        return ['success' => 1];
+                    }
+
+
+                    if($conteo < 4 || $conteo > 12){
+                        return ['success' => 2];
+                    }
+
+                    if(User::where('nombre', $request->nombre)->first()){
+                        return ['success' => 3];
+                    }
+
+                    // cambiar nombre
+                    User::where('id', $request->id)->update([
+                        'nombre' => $request->nombre,
+                    ]);
+
+                    UsuarioRecursos::where('id', $infoRecursos->id)->update([
+                        'nombre_cambio' => 1,
+                    ]);
+
+                    DB::commit();
+                    return ['success' => 4];
+                }else{
+                    // no ha cambiado el nombre.
+                    // verificar reglas
+                    // nombre debe tener minimo 4 y 12 caracteres maximo
+                    // nombre unico
+
+
+                    if($conteo < 4 || $conteo > 12){
+                        return ['success' => 2];
+                    }
+
+                    if(User::where('nombre', $request->nombre)->first()){
+                        return ['success' => 3];
+                    }
+
+                    // cambiar nombre
+                    User::where('id', $request->id)->update([
+                        'nombre' => $request->nombre,
+                    ]);
+
+                    UsuarioRecursos::where('id', $infoRecursos->id)->update([
+                        'nombre_cambio' => 1,
+                    ]);
+
+                    DB::commit();
+                    return ['success' => 4];
+                }
+
+            }else{
+                return ['success' => 99];
+            }
+        } catch (\Throwable $e) {
+            DB::rollback();
+            return ['success' => 99];
+        }
+    }
+
 
 
 }

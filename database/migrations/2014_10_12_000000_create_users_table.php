@@ -16,8 +16,10 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->dateTime('fecha_creacion');
-            $table->string('nombre', 30);
-            $table->string('pais', 20);
+            $table->string('nombre', 20)->unique();
+
+            // si no encuentra pais, sera null y se mostrara bandera desconocida
+            $table->string('pais', 20)->nullable();
         });
     }
 

@@ -18,8 +18,8 @@ Route::post('/usuario/informacion', [UsuarioInformacionController::class, 'infor
 // retorno de informacion de usuario con redes sociales
 Route::post('/usuario/redsocial/informacion', [UsuarioInformacionController::class, 'informacionUsuarioRedSocial']);
 
-
-
+// cambio de nombre de usuario
+Route::post('/usuario/cambio/nombre', [UsuarioInformacionController::class, 'cambiarNombrePlayer']);
 
 
 
